@@ -5,6 +5,8 @@ mod tracer;
 mod vector;
 
 use image::RgbImage;
+use indicatif::ParallelProgressIterator;
+use rayon::prelude::*;
 use scene::Scene;
 use sphere::Sphere;
 use tracer::Tracer;
@@ -34,13 +36,13 @@ fn main() {
     let tracer = Tracer::new(scene, WIDTH, HEIGHT);
     let mut image = RgbImage::new(WIDTH, HEIGHT);
 
-    for x in 0..WIDTH {
-        for y in 0..HEIGHT {
-            let colour = tracer.colour_at_pixel(x, y);
-
-            image.put_pixel(x, y, colour);
-        }
-    }
+    image
+        .enumerate_pixels_mut()
+        .par_bridge()
+        .progress_count(WIDTH as u64 * HEIGHT as u64)
+        .for_each(|(x, y, pixel)| {
+            *pixel = tracer.colour_at_pixel(x, y);
+        });
 
     image.save("out.png").unwrap();
 }
