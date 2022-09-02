@@ -1,4 +1,4 @@
-use std::ops::{Add, AddAssign, Mul};
+use std::ops::{Add, AddAssign, Div, Mul};
 
 use serde_tuple::Deserialize_tuple;
 
@@ -37,6 +37,18 @@ impl Mul<f64> for Colour {
             r: self.r * rhs,
             g: self.g * rhs,
             b: self.b * rhs,
+        }
+    }
+}
+
+impl Div<f64> for Colour {
+    type Output = Colour;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Self::Output {
+            r: self.r / rhs,
+            g: self.g / rhs,
+            b: self.b / rhs,
         }
     }
 }

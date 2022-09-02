@@ -21,6 +21,7 @@ pub struct Scene {
     pub height: u32,
 
     pub recursion_depth_limit: usize,
+    pub antialiasing: usize,
 }
 
 impl Scene {

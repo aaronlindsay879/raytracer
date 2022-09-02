@@ -19,14 +19,20 @@ impl<'a> Tracer<'a> {
     }
 
     fn recurse_colour(&self, ray: &Ray, recurses: usize) -> Colour {
+        // if no sphere intersection, return background colour (black)
         if let Some((t, sphere)) = self.scene.sphere_intersect(*ray) {
+            // otherwise calculate intersection point and the view vector
             let intersect_point = ray.origin + t * ray.direction;
             let view = (ray.direction * -1.0).normalise();
 
+            // then calculate the surface normal
             let normal = (intersect_point - sphere.centre).normalise();
 
+            // and then find the colour at that point
             let colour = sphere.lighting(self.scene, intersect_point, view, normal);
 
+            // if we haven't yet hit the recursion limit, calculate the reflected vector and calculate again
+            // adding the colour to the currently stored colour
             if recurses < self.scene.recursion_depth_limit {
                 let reflectance_vector = normal * (normal * view) * 2.0 - view;
 
@@ -44,20 +50,40 @@ impl<'a> Tracer<'a> {
 
     /// Finds the colour at a given pixel by casting a ray and checking intersections with the scene
     pub fn colour_at_pixel(&self, x: u32, y: u32) -> Rgb<u8> {
-        // percentage across the width and height of canvas
-        let alpha = (x as f64) / (self.width as f64);
-        let beta = ((self.height - y - 1) as f64) / (self.height as f64);
+        // variables for antialiasing - how to lay out subpixel grid
+        let offset = 1.0 / (self.scene.antialiasing as f64).powi(2);
+        let step_offset = 1.0 / (self.scene.antialiasing as f64);
+        let div_factor = self.scene.antialiasing as f64 * self.scene.antialiasing as f64;
 
-        // bilinear interpolation to find point at correct position
-        let top = self.scene.top_left.lerp(&self.scene.top_right, alpha);
-        let bottom = self.scene.bottom_left.lerp(&self.scene.bottom_right, alpha);
-        let point = top.lerp(&bottom, beta);
+        // sum up all colours from subpixel grid and divide to find an average
+        let colour: Colour = (1..=self.scene.antialiasing)
+            .map(|x_step| {
+                (1..=self.scene.antialiasing)
+                    .map(|y_step| {
+                        // percentage across the width and height of canvas
+                        let alpha = ((x as f64 - offset) - step_offset * x_step as f64)
+                            / (self.width as f64);
+                        let beta = ((self.height as f64
+                            - (y as f64 - offset)
+                            - step_offset * y_step as f64)
+                            - 1.0)
+                            / (self.height as f64);
 
-        // construct a ray pointing towards the point from the camera, and calculate green/red values pased on ray direction
-        let ray = Ray::towards_camera(point, self.scene.camera);
+                        // bilinear interpolation to find point at correct position
+                        let top = self.scene.top_left.lerp(&self.scene.top_right, alpha);
+                        let bottom = self.scene.bottom_left.lerp(&self.scene.bottom_right, alpha);
+                        let point = top.lerp(&bottom, beta);
 
-        // if intersect occurs, use calculated sphere colour - otherwise black
-        let colour = self.recurse_colour(&ray, 0);
+                        // construct a ray pointing towards the point from the camera, and calculate green/red values pased on ray direction
+                        let ray = Ray::towards_camera(point, self.scene.camera);
+
+                        // if intersect occurs, use calculated sphere colour - otherwise black
+                        self.recurse_colour(&ray, 0)
+                    })
+                    .fold(Colour::new(0.0, 0.0, 0.0), |a, b| a + b)
+            })
+            .fold(Colour::new(0.0, 0.0, 0.0), |a, b| a + b)
+            / div_factor;
 
         // then clamp colours to [0, 1] and convert to u8
         Rgb(colour.clamp().to_inner().map(|x| (x * 255.0) as u8))

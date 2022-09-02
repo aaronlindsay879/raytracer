@@ -1,4 +1,3 @@
-use image::Rgb;
 use serde::Deserialize;
 
 use crate::{colour::Colour, material::Material, ray::Ray, scene::Scene, vector::Vector};
