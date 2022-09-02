@@ -25,11 +25,11 @@ fn main() {
             // construct a ray pointing towards the point from the camera, and calculate green/red values pased on ray direction
             let ray = Ray::from_camera(point);
 
-            let green = ((ray.direction.x + 1.0) * 255.0 / 2.0) as u8;
-            let red = ((ray.direction.y + 0.75) * 255.0 / 1.5) as u8;
+            let red = ((ray.direction.x + 1.0) * 255.0 / 2.0) as u8;
+            let green = ((ray.direction.y + 0.75) * 255.0 / 1.5) as u8;
 
             // write pixel with a fixed blue value
-            image.put_pixel(x, y, Rgb([green, red, 108]));
+            image.put_pixel(x, y, Rgb([red, green, 108]));
         }
     }
 
