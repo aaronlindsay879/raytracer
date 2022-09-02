@@ -1,0 +1,62 @@
+# camera and canvas bounds positions 
+camera = [0.0, 0.0, -1.0]
+top_left = [1.0, 0.75, 0.0]
+top_right = [-1.0, 0.75, 0.0]
+bottom_left = [1.0, -0.75, 0.0]
+bottom_right = [-1.0, -0.75, 0.0]
+
+# number of light points to simulate per light source
+num_light_points = 100
+
+# ambient light level
+ambient_light = [0.5, 0.5, 0.5]
+
+# resolution
+width = 2560
+height = 1920
+
+[[light]]
+centre = [0.3, 0.3, -0.5]
+radius = 0.1
+diffuse_intensity = [0.8, 0.8, 0.8]
+specular_intensity = [0.8, 0.8, 0.8]
+
+[[sphere]]
+centre = [0.0, 0.0, 2.0]
+radius = 1.3
+material = [
+    [0.2, 0.1, 0.1], 
+    [0.4, 0.1, 0.1],
+    [0.7, 0.7, 0.7],
+    100.0
+]
+
+[[sphere]]
+centre = [0.2, 0.0, 0.2]
+radius = 0.1
+material = [
+    [0.1, 0.2, 0.1], 
+    [0.5, 0.9, 0.5],
+    [0.7, 0.7, 0.7],
+    25.0
+]
+
+[[sphere]]
+centre = [-0.6, 0.4, 0.3]
+radius = 0.2
+material = [
+    [0.1, 0.1, 0.2], 
+    [0.5, 0.5, 0.9],
+    [0.7, 0.7, 0.7],
+    50.0
+]
+
+[[sphere]]
+centre = [0.6, -1.7, 3.0]
+radius = 0.6
+material = [
+    [0.1, 0.1, 0.2], 
+    [0.5, 0.5, 0.9],
+    [0.7, 0.7, 0.7],
+    50.0
+]

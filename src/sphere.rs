@@ -1,29 +1,22 @@
 use image::Rgb;
+use serde::Deserialize;
 
 use crate::{colour::Colour, material::Material, ray::Ray, scene::Scene, vector::Vector};
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub struct Sphere {
-    pub point: Vector,
+    pub centre: Vector,
     pub radius: f64,
     pub material: Material,
 }
 
 impl Sphere {
-    pub fn new(point: Vector, radius: f64, material: Material) -> Self {
-        Self {
-            point,
-            radius,
-            material,
-        }
-    }
-
     /// Returns the minimum distance (if applicable) for ray-sphere intersection
     pub fn ray_intersect(&self, ray: &Ray) -> Option<f64> {
         // perform sphere intersection test using quadratic eqn
         let a = ray.direction.magnitude().powi(2);
-        let b = 2.0 * ((ray.origin - self.point) * ray.direction);
-        let c = (ray.origin - self.point).magnitude().powi(2) - self.radius.powi(2);
+        let b = 2.0 * ((ray.origin - self.centre) * ray.direction);
+        let c = (ray.origin - self.centre).magnitude().powi(2) - self.radius.powi(2);
 
         // if discriminant < 0, then no solutions - ray did not intersect sphere
         // if discriminant >= 0, then 1 or 2 solutions - ray either touched or intersected sphere
@@ -53,7 +46,7 @@ impl Sphere {
     pub fn lighting(&self, ray: &Ray, scene: &Scene, t: f64) -> Rgb<u8> {
         // find the ray-sphere intersection point and the sphere's surface normal
         let intersect_point = ray.origin + t * ray.direction;
-        let surface_normal = (intersect_point - self.point).normalise();
+        let surface_normal = (intersect_point - self.centre).normalise();
 
         // start off with ambient colour
         let mut colour = self.material.ambient_constant * scene.ambient_light;
@@ -71,7 +64,7 @@ impl Sphere {
                     .iter()
                     .filter(|&sphere| sphere != self)
                     .map(|sphere| {
-                        (0..Scene::NUM_LIGHT_POINTS)
+                        (0..scene.num_light_points)
                             .filter(|_| {
                                 let shadow_vector = light.random_in_light() - intersect_point;
                                 let shadow_ray = Ray::new(intersect_point, shadow_vector);
@@ -96,7 +89,7 @@ impl Sphere {
 
                     // calculate specular term
                     let reflectance = (2.0 * direction * surface_normal - light_vector).normalise();
-                    let view = (Scene::CAMERA - intersect_point).normalise();
+                    let view = (scene.camera - intersect_point).normalise();
 
                     let specular = self.material.specular_constant
                         * light.specular_intensity
@@ -104,7 +97,7 @@ impl Sphere {
 
                     // how much to scale the light depending on the number of blocked shadow rays
                     let scale_factor =
-                        1.0 - (num_shadowed as f64) / (Scene::NUM_LIGHT_POINTS as f64);
+                        1.0 - (num_shadowed as f64) / (scene.num_light_points as f64);
 
                     // total lighting for light is sum
                     Some((diffuse + specular) * scale_factor)

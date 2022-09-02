@@ -1,6 +1,8 @@
 use std::ops::{Add, AddAssign, Mul};
 
-#[derive(Debug, Default, Clone, Copy, PartialEq)]
+use serde_tuple::Deserialize_tuple;
+
+#[derive(Debug, Default, Clone, Copy, PartialEq, Deserialize_tuple)]
 pub struct Colour {
     r: f64,
     g: f64,

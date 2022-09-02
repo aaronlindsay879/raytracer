@@ -1,4 +1,4 @@
-use crate::{scene::Scene, vector::Vector};
+use crate::vector::Vector;
 
 #[derive(Clone, Copy)]
 pub struct Ray {
@@ -12,10 +12,10 @@ impl Ray {
     }
 
     /// Constructs a ray to the global camera from a given point
-    pub fn towards_camera(point: Vector) -> Self {
+    pub fn towards_camera(point: Vector, camera: Vector) -> Self {
         Self {
             origin: point,
-            direction: point - Scene::CAMERA,
+            direction: point - camera,
         }
     }
 }
