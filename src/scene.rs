@@ -1,4 +1,4 @@
-use crate::{sphere::Sphere, vector::Vector};
+use crate::{ray::Ray, sphere::Sphere, vector::Vector};
 
 #[derive(Default)]
 pub struct Scene {
@@ -23,8 +23,14 @@ impl Scene {
         self.spheres.push(sphere);
     }
 
-    /// Returns reference to the current spheres in the scene
-    pub fn spheres(&self) -> &[Sphere] {
-        &self.spheres
+    /// Returns the first sphere the ray intersects with, if any
+    pub fn sphere_intersect(&self, ray: Ray) -> Option<&Sphere> {
+        // find the closest sphere that intersects, by first figuring out all the spheres that intersect with the ray
+        // and then choosing the closest one
+        self.spheres
+            .iter()
+            .filter_map(|sphere| sphere.ray_intersect(&ray).map(|val| (val, sphere)))
+            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            .map(|(_, sphere)| sphere)
     }
 }
