@@ -63,27 +63,31 @@ impl Sphere {
             .lights
             .iter()
             .filter_map(|light| {
-                let shadow_vector = light.point - intersect_point;
-                let shadow_ray = Ray::new(intersect_point, shadow_vector);
+                let light_vector = (light.centre - intersect_point).normalise();
 
-                let light_vector = shadow_vector.normalise();
+                // number of rays cast from random points in the light which are blocked (shadowed)
+                let num_shadowed: usize = scene
+                    .spheres
+                    .iter()
+                    .filter(|&sphere| sphere != self)
+                    .map(|sphere| {
+                        (0..Scene::NUM_LIGHT_POINTS)
+                            .filter(|_| {
+                                let shadow_vector = light.random_in_light() - intersect_point;
+                                let shadow_ray = Ray::new(intersect_point, shadow_vector);
 
-                // if the light is blocked by any objects
-                let is_shadowed =
-                    scene
-                        .spheres
-                        .iter()
-                        .filter(|&sphere| sphere != self)
-                        .any(|sphere| {
-                            // check if any intersects occur along the shadow ray
-                            sphere
-                                .ray_intersect(&shadow_ray)
-                                .is_some_and(|&intersect| intersect > 0.0 && intersect < 1.0)
-                        });
+                                // check if any intersects occur along the shadow ray
+                                sphere
+                                    .ray_intersect(&shadow_ray)
+                                    .is_some_and(|&intersect| intersect > 0.0 && intersect < 1.0)
+                            })
+                            .count()
+                    })
+                    .sum();
 
                 // ignore lights that face the inside of the sphere or that are blocked
                 let direction = surface_normal * light_vector;
-                if is_shadowed || direction <= 0.0 {
+                if direction <= 0.0 {
                     None
                 } else {
                     // calculate diffuse term
@@ -98,8 +102,12 @@ impl Sphere {
                         * light.specular_intensity
                         * (reflectance * view).powf(self.material.shininess);
 
+                    // how much to scale the light depending on the number of blocked shadow rays
+                    let scale_factor =
+                        1.0 - (num_shadowed as f64) / (Scene::NUM_LIGHT_POINTS as f64);
+
                     // total lighting for light is sum
-                    Some(diffuse + specular)
+                    Some((diffuse + specular) * scale_factor)
                 }
             })
             .fold(Colour::new(0.0, 0.0, 0.0), |a, b| a + b);

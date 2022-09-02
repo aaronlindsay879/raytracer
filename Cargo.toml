@@ -10,3 +10,4 @@ forward_ref_generic = "0.2"
 image = "0.24"
 indicatif = {version = "0.17", features = ["rayon"]}
 rayon = "1.5"
+rand = "0.8"

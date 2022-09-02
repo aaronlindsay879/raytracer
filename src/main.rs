@@ -52,11 +52,13 @@ fn main() {
 
     scene.add_light(Light::new(
         Vector::new(0.3, 0.3, -0.5),
+        0.1,
         Colour::new(0.8, 0.8, 0.8),
         Colour::new(0.8, 0.8, 0.8),
     ));
     // scene.add_light(Light::new(
     //     Vector::new(5.0, -1.0, 0.5),
+    //     0.1,
     //     Colour::new(0.7, 0.7, 0.7),
     //     Colour::new(0.8, 0.8, 0.8),
     // ));

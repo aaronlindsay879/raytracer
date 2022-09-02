@@ -20,6 +20,9 @@ impl Scene {
     /// Camera position.
     pub const CAMERA: Vector = Vector::new(0.0, 0.0, -1.0);
 
+    /// Numbers of points to sample in each light
+    pub const NUM_LIGHT_POINTS: usize = 100;
+
     /// Adds a sphere to the scene
     pub fn add_sphere(&mut self, sphere: Sphere) {
         self.spheres.push(sphere);
