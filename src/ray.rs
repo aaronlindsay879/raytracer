@@ -7,6 +7,10 @@ pub struct Ray {
 }
 
 impl Ray {
+    pub fn new(origin: Vector, direction: Vector) -> Self {
+        Self { origin, direction }
+    }
+
     /// Constructs a ray to the global camera from a given point
     pub fn towards_camera(point: Vector) -> Self {
         Self {

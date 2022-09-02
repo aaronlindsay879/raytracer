@@ -2,7 +2,7 @@ use std::ops::{Add, Div, Mul, Sub};
 
 use forward_ref_generic::{commutative_binop, forward_ref_commutative_binop};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vector {
     pub x: f64,
     pub y: f64,

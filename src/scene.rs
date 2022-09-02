@@ -2,7 +2,7 @@ use crate::{colour::Colour, light::Light, ray::Ray, sphere::Sphere, vector::Vect
 
 #[derive(Default)]
 pub struct Scene {
-    spheres: Vec<Sphere>,
+    pub spheres: Vec<Sphere>,
     pub lights: Vec<Light>,
     pub ambient_light: Colour,
 }

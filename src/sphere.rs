@@ -2,7 +2,7 @@ use image::Rgb;
 
 use crate::{colour::Colour, material::Material, ray::Ray, scene::Scene, vector::Vector};
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct Sphere {
     pub point: Vector,
     pub radius: f64,
@@ -63,11 +63,27 @@ impl Sphere {
             .lights
             .iter()
             .filter_map(|light| {
-                let light_vector = (light.point - intersect_point).normalise();
+                let shadow_vector = light.point - intersect_point;
+                let shadow_ray = Ray::new(intersect_point, shadow_vector);
 
-                // ignore lights that face the inside of the sphere
+                let light_vector = shadow_vector.normalise();
+
+                // if the light is blocked by any objects
+                let is_shadowed =
+                    scene
+                        .spheres
+                        .iter()
+                        .filter(|&sphere| sphere != self)
+                        .any(|sphere| {
+                            // check if any intersects occur along the shadow ray
+                            sphere
+                                .ray_intersect(&shadow_ray)
+                                .is_some_and(|&intersect| intersect > 0.0 && intersect < 1.0)
+                        });
+
+                // ignore lights that face the inside of the sphere or that are blocked
                 let direction = surface_normal * light_vector;
-                if direction <= 0.0 {
+                if is_shadowed || direction <= 0.0 {
                     None
                 } else {
                     // calculate diffuse term

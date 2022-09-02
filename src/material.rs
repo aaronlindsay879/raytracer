@@ -1,6 +1,6 @@
 use crate::colour::Colour;
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Material {
     pub ambient_constant: Colour,
     pub diffuse_constant: Colour,
