@@ -7,5 +7,6 @@ pub struct Material {
     pub ambient_constant: Colour,
     pub diffuse_constant: Colour,
     pub specular_constant: Colour,
+    pub reflectiveness: Colour,
     pub shininess: f64,
 }

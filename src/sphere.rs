@@ -43,11 +43,7 @@ impl Sphere {
     }
 
     /// Calculates the colour of the sphere from a given ray and scene.
-    pub fn lighting(&self, ray: &Ray, scene: &Scene, t: f64) -> Rgb<u8> {
-        // find the ray-sphere intersection point and the sphere's surface normal
-        let intersect_point = ray.origin + t * ray.direction;
-        let surface_normal = (intersect_point - self.centre).normalise();
-
+    pub fn lighting(&self, scene: &Scene, point: Vector, view: Vector, normal: Vector) -> Colour {
         // start off with ambient colour
         let mut colour = self.material.ambient_constant * scene.ambient_light;
 
@@ -56,7 +52,7 @@ impl Sphere {
             .lights
             .iter()
             .filter_map(|light| {
-                let light_vector = (light.centre - intersect_point).normalise();
+                let light_vector = (light.centre - point).normalise();
 
                 // number of rays cast from random points in the light which are blocked (shadowed)
                 let num_shadowed: usize = scene
@@ -66,8 +62,8 @@ impl Sphere {
                     .map(|sphere| {
                         (0..scene.num_light_points)
                             .filter(|_| {
-                                let shadow_vector = light.random_in_light() - intersect_point;
-                                let shadow_ray = Ray::new(intersect_point, shadow_vector);
+                                let shadow_vector = light.random_in_light() - point;
+                                let shadow_ray = Ray::new(point, shadow_vector);
 
                                 // check if any intersects occur along the shadow ray
                                 sphere
@@ -79,7 +75,7 @@ impl Sphere {
                     .sum();
 
                 // ignore lights that face the inside of the sphere or that are blocked
-                let direction = surface_normal * light_vector;
+                let direction = normal * light_vector;
                 if direction <= 0.0 {
                     None
                 } else {
@@ -88,8 +84,7 @@ impl Sphere {
                         self.material.diffuse_constant * light.diffuse_intensity * direction;
 
                     // calculate specular term
-                    let reflectance = (2.0 * direction * surface_normal - light_vector).normalise();
-                    let view = (scene.camera - intersect_point).normalise();
+                    let reflectance = (2.0 * direction * normal - light_vector).normalise();
 
                     let specular = self.material.specular_constant
                         * light.specular_intensity
@@ -105,7 +100,6 @@ impl Sphere {
             })
             .fold(Colour::new(0.0, 0.0, 0.0), |a, b| a + b);
 
-        // then clamp colours to [0, 1] and convert to u8
-        Rgb(colour.clamp().to_inner().map(|x| (x * 255.0) as u8))
+        colour
     }
 }

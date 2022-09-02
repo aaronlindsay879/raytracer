@@ -19,6 +19,8 @@ pub struct Scene {
     pub num_light_points: usize,
     pub width: u32,
     pub height: u32,
+
+    pub recursion_depth_limit: usize,
 }
 
 impl Scene {

@@ -1,6 +1,6 @@
 use image::Rgb;
 
-use crate::{ray::Ray, scene::Scene};
+use crate::{colour::Colour, ray::Ray, scene::Scene};
 
 pub struct Tracer<'a> {
     scene: &'a Scene,
@@ -18,6 +18,30 @@ impl<'a> Tracer<'a> {
         }
     }
 
+    fn recurse_colour(&self, ray: &Ray, recurses: usize) -> Colour {
+        if let Some((t, sphere)) = self.scene.sphere_intersect(*ray) {
+            let intersect_point = ray.origin + t * ray.direction;
+            let view = (ray.direction * -1.0).normalise();
+
+            let normal = (intersect_point - sphere.centre).normalise();
+
+            let colour = sphere.lighting(self.scene, intersect_point, view, normal);
+
+            if recurses < self.scene.recursion_depth_limit {
+                let reflectance_vector = normal * (normal * view) * 2.0 - view;
+
+                let reflected_colour = self
+                    .recurse_colour(&Ray::new(intersect_point, reflectance_vector), recurses + 1);
+
+                colour + (reflected_colour * sphere.material.reflectiveness)
+            } else {
+                colour
+            }
+        } else {
+            Colour::new(0.0, 0.0, 0.0)
+        }
+    }
+
     /// Finds the colour at a given pixel by casting a ray and checking intersections with the scene
     pub fn colour_at_pixel(&self, x: u32, y: u32) -> Rgb<u8> {
         // percentage across the width and height of canvas
@@ -32,13 +56,10 @@ impl<'a> Tracer<'a> {
         // construct a ray pointing towards the point from the camera, and calculate green/red values pased on ray direction
         let ray = Ray::towards_camera(point, self.scene.camera);
 
-        // figure out if ray intersects with any spheres
-        let sphere_intersect = self.scene.sphere_intersect(ray);
-
         // if intersect occurs, use calculated sphere colour - otherwise black
-        match sphere_intersect {
-            Some((t, sphere)) => sphere.lighting(&ray, self.scene, t),
-            None => Rgb([0, 0, 0]),
-        }
+        let colour = self.recurse_colour(&ray, 0);
+
+        // then clamp colours to [0, 1] and convert to u8
+        Rgb(colour.clamp().to_inner().map(|x| (x * 255.0) as u8))
     }
 }
