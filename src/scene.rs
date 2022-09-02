@@ -1,8 +1,10 @@
-use crate::{ray::Ray, sphere::Sphere, vector::Vector};
+use crate::{colour::Colour, light::Light, ray::Ray, sphere::Sphere, vector::Vector};
 
 #[derive(Default)]
 pub struct Scene {
     spheres: Vec<Sphere>,
+    pub lights: Vec<Light>,
+    pub ambient_light: Colour,
 }
 
 impl Scene {
@@ -23,14 +25,18 @@ impl Scene {
         self.spheres.push(sphere);
     }
 
+    /// Adds a light to the scene
+    pub fn add_light(&mut self, light: Light) {
+        self.lights.push(light);
+    }
+
     /// Returns the first sphere the ray intersects with, if any
-    pub fn sphere_intersect(&self, ray: Ray) -> Option<&Sphere> {
+    pub fn sphere_intersect(&self, ray: Ray) -> Option<(f64, &Sphere)> {
         // find the closest sphere that intersects, by first figuring out all the spheres that intersect with the ray
         // and then choosing the closest one
         self.spheres
             .iter()
             .filter_map(|sphere| sphere.ray_intersect(&ray).map(|val| (val, sphere)))
             .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
-            .map(|(_, sphere)| sphere)
     }
 }

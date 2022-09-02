@@ -35,9 +35,9 @@ impl Tracer {
         // figure out if ray intersects with any spheres
         let sphere_intersect = self.scene.sphere_intersect(ray);
 
-        // if intersect occurs, use sphere colour - otherwise black
+        // if intersect occurs, use calculated sphere colour - otherwise black
         match sphere_intersect {
-            Some(sphere) => Rgb(sphere.colour.map(|x| (x * 255.0) as u8)),
+            Some((t, sphere)) => sphere.lighting(&ray, &self.scene, t),
             None => Rgb([0, 0, 0]),
         }
     }

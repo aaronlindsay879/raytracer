@@ -1,11 +1,17 @@
+mod colour;
+mod light;
+mod material;
 mod ray;
 mod scene;
 mod sphere;
 mod tracer;
 mod vector;
 
+use colour::Colour;
 use image::RgbImage;
 use indicatif::ParallelProgressIterator;
+use light::Light;
+use material::Material;
 use rayon::prelude::*;
 use scene::Scene;
 use sphere::Sphere;
@@ -17,20 +23,33 @@ const WIDTH: u32 = 2560;
 
 fn main() {
     let mut scene = Scene::default();
+    scene.ambient_light = Colour::new(0.5, 0.5, 0.5);
+
     scene.add_sphere(Sphere::new(
         Vector::new(0.0, 0.0, 2.0),
         1.3,
-        [0.5, 0.5, 0.25],
+        Material::new([0.2, 0.1, 0.1], [0.4, 0.1, 0.1], [0.7, 0.7, 0.7], 100.0),
     ));
     scene.add_sphere(Sphere::new(
         Vector::new(0.2, 0.0, 0.2),
         0.1,
-        [0.25, 0.5, 0.5],
+        Material::new([0.1, 0.2, 0.1], [0.5, 0.9, 0.5], [0.7, 0.7, 0.7], 25.0),
     ));
     scene.add_sphere(Sphere::new(
         Vector::new(-0.6, 0.4, 0.3),
         0.2,
-        [0.5, 0.25, 0.5],
+        Material::new([0.1, 0.1, 0.2], [0.5, 0.5, 0.9], [0.7, 0.7, 0.7], 50.0),
+    ));
+
+    scene.add_light(Light::new(
+        Vector::new(-5.0, 1.0, 0.5),
+        Colour::new(0.8, 0.8, 0.8),
+        Colour::new(0.8, 0.8, 0.8),
+    ));
+    scene.add_light(Light::new(
+        Vector::new(5.0, -1.0, 0.5),
+        Colour::new(0.7, 0.7, 0.7),
+        Colour::new(0.8, 0.8, 0.8),
     ));
 
     let tracer = Tracer::new(scene, WIDTH, HEIGHT);

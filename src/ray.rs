@@ -1,5 +1,6 @@
 use crate::{scene::Scene, vector::Vector};
 
+#[derive(Clone, Copy)]
 pub struct Ray {
     pub origin: Vector,
     pub direction: Vector,

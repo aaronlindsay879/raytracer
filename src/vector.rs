@@ -1,4 +1,4 @@
-use std::ops::{Add, Mul, Sub};
+use std::ops::{Add, Div, Mul, Sub};
 
 use forward_ref_generic::{commutative_binop, forward_ref_commutative_binop};
 
@@ -21,8 +21,14 @@ impl Vector {
         (1.0 - amount) * self + amount * other
     }
 
-    pub fn norm(&self) -> f64 {
+    /// Calculates the magnitude of the vector
+    pub fn magnitude(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
+    }
+
+    /// Normalises a vector such that it points in same direction as before but has magnitude of 1
+    pub fn normalise(&self) -> Self {
+        *self / self.magnitude()
     }
 }
 
@@ -68,6 +74,18 @@ commutative_binop! {
 
 forward_ref_commutative_binop! {
     impl Mul for Vector, f64
+}
+
+impl Div<f64> for Vector {
+    type Output = Vector;
+
+    fn div(self, rhs: f64) -> Self::Output {
+        Self::Output {
+            x: self.x / rhs,
+            y: self.y / rhs,
+            z: self.z / rhs,
+        }
+    }
 }
 
 impl Mul for Vector {
