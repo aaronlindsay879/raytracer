@@ -20,6 +20,10 @@ impl Vector {
     pub fn lerp(&self, other: &Vector, amount: f64) -> Self {
         (1.0 - amount) * self + amount * other
     }
+
+    pub fn norm(&self) -> f64 {
+        (self.x.powi(2) + self.y.powi(2) + self.z.powi(2)).sqrt()
+    }
 }
 
 impl Add for Vector {
@@ -64,4 +68,13 @@ commutative_binop! {
 
 forward_ref_commutative_binop! {
     impl Mul for Vector, f64
+}
+
+impl Mul for Vector {
+    type Output = f64;
+
+    /// Dot product
+    fn mul(self, rhs: Self) -> Self::Output {
+        self.x * rhs.x + self.y * rhs.y + self.z * rhs.z
+    }
 }
