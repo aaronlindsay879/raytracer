@@ -1,11 +1,11 @@
-use crate::{colour::Colour, light::Light, ray::Ray, sphere::Sphere, vector::Vector};
+use crate::{colour::Colour, light::Light, ray::Ray, shapes::Shape, vector::Vector};
 use serde::Deserialize;
 
 #[derive(Default, Deserialize, Debug)]
 #[serde(default)]
 pub struct Scene {
     #[serde(alias = "sphere")]
-    pub spheres: Vec<Sphere>,
+    pub shapes: Vec<Shape>,
     #[serde(alias = "light")]
     pub lights: Vec<Light>,
     pub ambient_light: Colour,
@@ -25,13 +25,13 @@ pub struct Scene {
 }
 
 impl Scene {
-    /// Returns the first sphere the ray intersects with, if any
-    pub fn sphere_intersect(&self, ray: Ray) -> Option<(f64, &Sphere)> {
-        // find the closest sphere that intersects, by first figuring out all the spheres that intersect with the ray
+    /// Returns the first shape the ray intersects with, if any
+    pub fn shape_intersect(&self, ray: Ray) -> Option<(f64, &Shape)> {
+        // find the closest shape that intersects, by first figuring out all the shape that intersect with the ray
         // and then choosing the closest one
-        self.spheres
+        self.shapes
             .iter()
-            .filter_map(|sphere| sphere.ray_intersect(&ray).map(|val| (val, sphere)))
+            .filter_map(|shape| shape.ray_intersect(&ray).map(|val| (val, shape)))
             .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
     }
 }

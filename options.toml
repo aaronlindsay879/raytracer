@@ -18,7 +18,7 @@ height = 1920
 # max recursion depth for reflections
 recursion_depth_limit = 1
 # antialiasing - 2 is a 2x2 grid for each pixel, 3 is 3x3, etc.
-antialiasing = 2
+antialiasing = 8
 
 [[light]]
 centre = [0.3, 0.3, -0.5]

@@ -19,17 +19,17 @@ impl<'a> Tracer<'a> {
     }
 
     fn recurse_colour(&self, ray: &Ray, recurses: usize) -> Colour {
-        // if no sphere intersection, return background colour (black)
-        if let Some((t, sphere)) = self.scene.sphere_intersect(*ray) {
+        // if no shape intersection, return background colour (black)
+        if let Some((t, shape)) = self.scene.shape_intersect(*ray) {
             // otherwise calculate intersection point and the view vector
             let intersect_point = ray.origin + t * ray.direction;
             let view = (ray.direction * -1.0).normalise();
 
             // then calculate the surface normal
-            let normal = (intersect_point - sphere.centre).normalise();
+            let normal = shape.normal(&intersect_point);
 
             // and then find the colour at that point
-            let colour = sphere.lighting(self.scene, intersect_point, view, normal);
+            let colour = shape.lighting(self.scene, intersect_point, view, normal);
 
             // if we haven't yet hit the recursion limit, calculate the reflected vector and calculate again
             // adding the colour to the currently stored colour
@@ -39,7 +39,7 @@ impl<'a> Tracer<'a> {
                 let reflected_colour = self
                     .recurse_colour(&Ray::new(intersect_point, reflectance_vector), recurses + 1);
 
-                colour + (reflected_colour * sphere.material.reflectiveness)
+                colour + (reflected_colour * shape.material().reflectiveness)
             } else {
                 colour
             }
@@ -77,7 +77,7 @@ impl<'a> Tracer<'a> {
                         // construct a ray pointing towards the point from the camera, and calculate green/red values pased on ray direction
                         let ray = Ray::towards_camera(point, self.scene.camera);
 
-                        // if intersect occurs, use calculated sphere colour - otherwise black
+                        // if intersect occurs, use calculated shape colour - otherwise black
                         self.recurse_colour(&ray, 0)
                     })
                     .fold(Colour::new(0.0, 0.0, 0.0), |a, b| a + b)

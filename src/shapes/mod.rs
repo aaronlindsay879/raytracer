@@ -1,50 +1,39 @@
-use serde::Deserialize;
+pub mod sphere;
 
 use crate::{colour::Colour, material::Material, ray::Ray, scene::Scene, vector::Vector};
+use serde::Deserialize;
+use sphere::Sphere;
 
 #[derive(Debug, PartialEq, Deserialize)]
-pub struct Sphere {
-    pub centre: Vector,
-    pub radius: f64,
-    pub material: Material,
+#[serde(untagged)]
+pub enum Shape {
+    #[serde(alias = "sphere")]
+    Sphere(Sphere),
 }
 
-impl Sphere {
-    /// Returns the minimum distance (if applicable) for ray-sphere intersection
-    pub fn ray_intersect(&self, ray: &Ray) -> Option<f64> {
-        // perform sphere intersection test using quadratic eqn
-        let a = ray.direction.magnitude().powi(2);
-        let b = 2.0 * ((ray.origin - self.centre) * ray.direction);
-        let c = (ray.origin - self.centre).magnitude().powi(2) - self.radius.powi(2);
-
-        // if discriminant < 0, then no solutions - ray did not intersect sphere
-        // if discriminant >= 0, then 1 or 2 solutions - ray either touched or intersected sphere
-        let discriminant = b.powi(2) - 4.0 * a * c;
-
-        if discriminant < 0.0 {
-            None
-        } else {
-            // find the two solutions to the eqn in the case that ray touches/intersects sphere
-            let t_1 = (-b + discriminant.sqrt()) / (2.0 * a);
-            let t_2 = (-b - discriminant.sqrt()) / (2.0 * a);
-
-            if t_1 < 0.0 && t_2 < 0.0 {
-                // if both solutions negative, then intersection occurs entirely before image plane
-                None
-            } else if t_1 >= 0.0 && t_2 >= 0.0 {
-                // if both positive, both intersections occur after image plane - so choose the closest
-                Some(t_1.min(t_2))
-            } else {
-                // if only one positive, choose the max (only positive solution) so it occurs after image plane
-                Some(t_1.max(t_2))
-            }
+impl Shape {
+    pub fn material(&self) -> &Material {
+        match self {
+            Shape::Sphere(sphere) => &sphere.material,
         }
     }
 
-    /// Calculates the colour of the sphere from a given ray and scene.
+    pub fn ray_intersect(&self, ray: &Ray) -> Option<f64> {
+        match self {
+            Shape::Sphere(sphere) => sphere.ray_intersect(ray),
+        }
+    }
+
+    pub fn normal(&self, point: &Vector) -> Vector {
+        match self {
+            Shape::Sphere(sphere) => (*point - sphere.centre).normalise(),
+        }
+    }
+
+    /// Calculates the colour of the shape from a given ray and scene.
     pub fn lighting(&self, scene: &Scene, point: Vector, view: Vector, normal: Vector) -> Colour {
         // start off with ambient colour
-        let mut colour = self.material.ambient_constant * scene.ambient_light;
+        let mut colour = self.material().ambient_constant * scene.ambient_light;
 
         // then add all the diffuse and specular terms from every light
         colour += scene
@@ -55,7 +44,7 @@ impl Sphere {
 
                 // number of rays cast from random points in the light which are blocked (shadowed)
                 let num_shadowed: usize = scene
-                    .spheres
+                    .shapes
                     .iter()
                     .filter(|&sphere| sphere != self)
                     .map(|sphere| {
@@ -80,14 +69,14 @@ impl Sphere {
                 } else {
                     // calculate diffuse term
                     let diffuse =
-                        self.material.diffuse_constant * light.diffuse_intensity * direction;
+                        self.material().diffuse_constant * light.diffuse_intensity * direction;
 
                     // calculate specular term
                     let reflectance = (2.0 * direction * normal - light_vector).normalise();
 
-                    let specular = self.material.specular_constant
+                    let specular = self.material().specular_constant
                         * light.specular_intensity
-                        * (reflectance * view).powf(self.material.shininess);
+                        * (reflectance * view).powf(self.material().shininess);
 
                     // how much to scale the light depending on the number of blocked shadow rays
                     let scale_factor =

@@ -5,7 +5,7 @@ mod light;
 mod material;
 mod ray;
 mod scene;
-mod sphere;
+mod shapes;
 mod tracer;
 mod vector;
 
