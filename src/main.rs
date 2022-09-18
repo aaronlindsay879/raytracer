@@ -1,4 +1,4 @@
-#![feature(is_some_with)]
+#![feature(is_some_with, once_cell)]
 
 mod colour;
 mod light;
@@ -20,6 +20,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     // parse options from file
     let options = std::fs::read_to_string("options.toml")?;
     let scene: Scene = toml::from_str(&options)?;
+
+    println!("{:#?}", scene);
 
     let tracer = Tracer::new(&scene, scene.width, scene.height);
     let mut image = RgbImage::new(scene.width, scene.height);

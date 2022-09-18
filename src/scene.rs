@@ -4,7 +4,7 @@ use serde::Deserialize;
 #[derive(Default, Deserialize, Debug)]
 #[serde(default)]
 pub struct Scene {
-    #[serde(alias = "sphere")]
+    #[serde(alias = "shape")]
     pub shapes: Vec<Shape>,
     #[serde(alias = "light")]
     pub lights: Vec<Light>,
@@ -32,6 +32,6 @@ impl Scene {
         self.shapes
             .iter()
             .filter_map(|shape| shape.ray_intersect(&ray).map(|val| (val, shape)))
-            .min_by(|a, b| a.0.partial_cmp(&b.0).unwrap())
+            .min_by(|a, b| a.0.total_cmp(&b.0))
     }
 }

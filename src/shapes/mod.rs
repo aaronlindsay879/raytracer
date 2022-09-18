@@ -1,32 +1,38 @@
-pub mod sphere;
+mod plane;
+mod sphere;
 
 use crate::{colour::Colour, material::Material, ray::Ray, scene::Scene, vector::Vector};
 use serde::Deserialize;
 use sphere::Sphere;
 
+use self::plane::Plane;
+
 #[derive(Debug, PartialEq, Deserialize)]
 #[serde(untagged)]
 pub enum Shape {
-    #[serde(alias = "sphere")]
     Sphere(Sphere),
+    Plane(Plane),
 }
 
 impl Shape {
     pub fn material(&self) -> &Material {
         match self {
             Shape::Sphere(sphere) => &sphere.material,
+            Shape::Plane(plane) => &plane.material,
         }
     }
 
     pub fn ray_intersect(&self, ray: &Ray) -> Option<f64> {
         match self {
             Shape::Sphere(sphere) => sphere.ray_intersect(ray),
+            Shape::Plane(plane) => plane.ray_intersect(ray),
         }
     }
 
     pub fn normal(&self, point: &Vector) -> Vector {
         match self {
             Shape::Sphere(sphere) => (*point - sphere.centre).normalise(),
+            Shape::Plane(_plane) => Vector::new(0.0, 0.0, 1.0),
         }
     }
 
@@ -46,17 +52,17 @@ impl Shape {
                 let num_shadowed: usize = scene
                     .shapes
                     .iter()
-                    .filter(|&sphere| sphere != self)
-                    .map(|sphere| {
+                    .filter(|&shape| shape != self)
+                    .map(|shape| {
                         (0..scene.num_light_points)
                             .filter(|_| {
                                 let shadow_vector = light.random_in_light() - point;
                                 let shadow_ray = Ray::new(point, shadow_vector);
 
                                 // check if any intersects occur along the shadow ray
-                                sphere
+                                shape
                                     .ray_intersect(&shadow_ray)
-                                    .is_some_and(|&intersect| intersect > 0.0 && intersect < 1.0)
+                                    .is_some_and(|&intersect| intersect > 0.0 && intersect < 2.0)
                             })
                             .count()
                     })

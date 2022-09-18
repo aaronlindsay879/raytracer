@@ -63,10 +63,7 @@ impl<'a> Tracer<'a> {
                         // percentage across the width and height of canvas
                         let alpha = ((x as f64 - offset) - step_offset * x_step as f64)
                             / (self.width as f64);
-                        let beta = ((self.height as f64
-                            - (y as f64 - offset)
-                            - step_offset * y_step as f64)
-                            - 1.0)
+                        let beta = ((y as f64 - offset) - step_offset * y_step as f64)
                             / (self.height as f64);
 
                         // bilinear interpolation to find point at correct position
